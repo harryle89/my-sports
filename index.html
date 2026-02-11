@@ -844,8 +844,8 @@
             document.getElementById('schedule-list').innerHTML = `
                 <div class="overflow-x-auto rounded-lg border border-slate-700">
                     <table class="w-full text-sm text-left text-slate-300">
-                        <thead class="text-xs uppercase bg-slate-800 text-slate-400"><tr><th class="px-4 py-3">Acara</th><th class="px-4 py-3">Kategori</th><th class="px-4 py-3">Jantina</th><th class="px-4 py-3 text-center">Status</th></tr></thead>
-                        <tbody class="divide-y divide-slate-700 bg-slate-800/50">${appData.events.map(e => `<tr class="hover:bg-slate-700/50"><td class="px-4 py-3 font-medium text-white">${e.name}</td><td class="px-4 py-3"><span class="category-badge ${getCategoryBadge(e.category)}">${e.category}</span></td><td class="px-4 py-3">${e.gender}</td><td class="px-4 py-3 text-center">${e.status === 'completed' ? '<span class="bg-green-900 text-green-300 text-xs font-medium px-2.5 py-0.5 rounded">Selesai</span>' : '<span class="bg-blue-900 text-blue-300 text-xs font-medium px-2.5 py-0.5 rounded">Akan Datang</span>'}</td></tr>`).join('')}</tbody>
+                        <thead class="text-xs uppercase bg-slate-800 text-slate-400"><tr><th class="px-4 py-3">Acara</th><th class="px-4 py-3">Kategori</th><th class="px-4 py-3 text-center">Status</th></tr></thead>
+                        <tbody class="divide-y divide-slate-700 bg-slate-800/50">${appData.events.map(e => `<tr class="hover:bg-slate-700/50"><td class="px-4 py-3 font-medium text-white">${e.name}</td><td class="px-4 py-3"><span class="category-badge ${getCategoryBadge(e.category)}">${e.category}</span></td><td class="px-4 py-3 text-center">${e.status === 'completed' ? '<span class="bg-green-900 text-green-300 text-xs font-medium px-2.5 py-0.5 rounded">Selesai</span>' : '<span class="bg-blue-900 text-blue-300 text-xs font-medium px-2.5 py-0.5 rounded">Akan Datang</span>'}</td></tr>`).join('')}</tbody>
                     </table>
                 </div>
             `;
