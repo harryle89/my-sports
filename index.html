@@ -55,6 +55,37 @@
             border: 1px solid #000;
         }
     </style>
+
+    <!-- Global UI Scripts (Non-Module) for Immediate Access -->
+    <script>
+        // Core UI Functions defined globally
+        function toggleModal(id) { 
+            const el = document.getElementById(id);
+            if(el) el.classList.toggle('hidden'); 
+        }
+
+        function showToast(msg, type='success') {
+            const t = document.getElementById('toast');
+            if(!t) return;
+            document.getElementById('toast-msg').innerText = msg;
+            document.getElementById('toast-icon').innerText = type === 'error' ? '❌' : '✅';
+            t.classList.remove('translate-x-full', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-x-full', 'opacity-0'), 3000);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            const content = document.getElementById(tabId);
+            const btn = document.querySelector(`[data-tab="${tabId}"]`);
+            if(content) content.classList.add('active');
+            if(btn) btn.classList.add('active');
+        }
+
+        function closePdfPreview() {
+            document.getElementById('pdf-preview-modal').classList.add('hidden');
+        }
+    </script>
 </head>
 <body class="h-full bg-slate-900 text-white flex flex-col overflow-hidden">
 
@@ -81,37 +112,54 @@
                 <button onclick="closeRegModal()" class="text-slate-400 hover:text-white transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
             
-            <div class="flex-1 overflow-hidden flex flex-col p-6">
-                <div id="relay-mode-switch" class="hidden mb-4 bg-slate-700/50 p-1 rounded-lg inline-flex self-start">
-                    <button onclick="switchRegMode('individual')" id="btn-mode-individual" class="px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 text-white shadow-sm transition">Daftar Individu</button>
-                    <button onclick="switchRegMode('team')" id="btn-mode-team" class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-300 hover:text-white transition">Daftar Pasukan</button>
+            <div class="flex-1 overflow-hidden flex flex-col p-6 relative">
+                <!-- VIEW 1: SELECTION LIST -->
+                <div id="reg-selection-view" class="flex flex-col h-full">
+                    <div id="relay-mode-switch" class="hidden mb-4 bg-slate-700/50 p-1 rounded-lg inline-flex self-start">
+                        <button onclick="switchRegMode('individual')" id="btn-mode-individual" class="px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 text-white shadow-sm transition">Daftar Individu</button>
+                        <button onclick="switchRegMode('team')" id="btn-mode-team" class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-300 hover:text-white transition">Daftar Pasukan</button>
+                    </div>
+
+                    <div id="reg-filters-container" class="flex flex-wrap gap-3 mb-4">
+                        <select id="modal-filter-class" onchange="renderBulkStudentList()" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none text-white"><option value="">Semua Kelas</option></select>
+                        <select id="modal-filter-house" onchange="renderBulkStudentList()" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none text-white"><option value="">Semua Rumah</option></select>
+                        <select id="modal-filter-gender" onchange="renderBulkStudentList()" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none text-white">
+                            <option value="">Semua Jantina</option>
+                            <option value="L">Lelaki</option>
+                            <option value="P">Perempuan</option>
+                        </select>
+                        <select id="modal-filter-category" onchange="renderBulkStudentList()" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none text-white"><option value="">Semua Kategori</option></select>
+                        <input type="text" id="modal-search" oninput="renderBulkStudentList()" placeholder="Cari nama murid..." class="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none text-white">
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto bg-slate-900/50 rounded-xl border border-slate-700 p-2">
+                        <div id="modal-student-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"></div>
+                        <div id="modal-team-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 hidden"></div>
+                        <p id="modal-empty-msg" class="text-center text-slate-500 py-10 hidden">Tiada data dijumpai.</p>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400 text-right">*Senarai tidak ditapis secara automatik. Sila guna filter di atas jika perlu.</div>
                 </div>
 
-                <div id="reg-filters-container" class="flex flex-wrap gap-3 mb-4">
-                    <select id="modal-filter-class" onchange="renderBulkStudentList()" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none text-white"><option value="">Semua Kelas</option></select>
-                    <select id="modal-filter-house" onchange="renderBulkStudentList()" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none text-white"><option value="">Semua Rumah</option></select>
-                    <select id="modal-filter-gender" onchange="renderBulkStudentList()" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none text-white">
-                        <option value="">Semua Jantina</option>
-                        <option value="L">Lelaki</option>
-                        <option value="P">Perempuan</option>
-                    </select>
-                    <select id="modal-filter-category" onchange="renderBulkStudentList()" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none text-white"><option value="">Semua Kategori</option></select>
-                    <input type="text" id="modal-search" oninput="renderBulkStudentList()" placeholder="Cari nama murid..." class="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none text-white">
+                <!-- VIEW 2: LANE ASSIGNMENT (Hidden by default) -->
+                <div id="reg-lane-view" class="hidden flex flex-col h-full">
+                    <div class="bg-blue-900/30 p-4 rounded-lg mb-4 border border-blue-500/30">
+                        <h3 class="font-bold text-blue-300 mb-1">Tetapan Lorong Balapan</h3>
+                        <p class="text-xs text-slate-400">Sila tetapkan nombor lorong (1-8) bagi setiap atlet yang dipilih.</p>
+                    </div>
+                    <div class="flex-1 overflow-y-auto bg-slate-900/50 rounded-xl border border-slate-700 p-4">
+                        <div id="lane-assign-list" class="space-y-2"></div>
+                    </div>
                 </div>
-
-                <div class="flex-1 overflow-y-auto bg-slate-900/50 rounded-xl border border-slate-700 p-2">
-                    <div id="modal-student-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"></div>
-                    <div id="modal-team-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 hidden"></div>
-                    <p id="modal-empty-msg" class="text-center text-slate-500 py-10 hidden">Tiada data dijumpai.</p>
-                </div>
-                <div class="mt-2 text-xs text-slate-400 text-right">*Senarai tidak ditapis secara automatik. Sila guna filter di atas jika perlu.</div>
             </div>
 
             <div class="p-4 border-t border-slate-700 bg-slate-900/50 rounded-b-2xl flex justify-between items-center">
                 <span id="modal-selected-count" class="text-sm text-blue-300 font-bold">0 dipilih</span>
                 <div class="flex gap-3">
-                    <button onclick="closeRegModal()" class="px-6 py-2 rounded-lg text-slate-300 hover:bg-slate-700 font-medium transition">Batal</button>
-                    <button onclick="saveBulkRegistration()" class="px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-bold shadow-lg transition transform active:scale-95">💾 Simpan Perubahan</button>
+                    <button onclick="closeRegModal()" id="btn-reg-cancel" class="px-6 py-2 rounded-lg text-slate-300 hover:bg-slate-700 font-medium transition">Batal</button>
+                    <!-- Back Button for Lane View -->
+                    <button onclick="backToSelection()" id="btn-reg-back" class="hidden px-6 py-2 rounded-lg text-slate-300 hover:bg-slate-700 font-medium transition">Kembali</button>
+                    <!-- Main Action Button -->
+                    <button onclick="handleRegAction()" id="btn-reg-save" class="px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-bold shadow-lg transition transform active:scale-95">💾 Simpan</button>
                 </div>
             </div>
         </div>
@@ -599,26 +647,18 @@
     }
 
     window.toggleModal = function(id) { document.getElementById(id).classList.toggle('hidden'); }
-    window.showToast = function(msg, type='success') {
-        const t = document.getElementById('toast');
-        document.getElementById('toast-msg').innerText = msg;
-        document.getElementById('toast-icon').innerText = type === 'error' ? '❌' : '✅';
-        t.classList.remove('translate-x-full', 'opacity-0');
-        setTimeout(() => t.classList.add('translate-x-full', 'opacity-0'), 3000);
-    }
-    window.switchTab = function(tabId) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
-    }
+    // Overwrite the global helper so module functions can use it if needed, though they usually use global scope
+    
     window.handleLogin = function() {
         if(document.getElementById('admin-password').value === 'admin123') {
             document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
             toggleModal('login-modal');
             switchTab('tab-admin');
             initAdminInputs();
-        } else { document.getElementById('login-error').classList.remove('hidden'); }
+        } else { 
+            // Minimal error feedback
+            alert("Kata laluan salah!");
+        }
     }
 
     // --- Helpers ---
@@ -895,7 +935,9 @@
         saveData(); showToast('Tetapan sekolah disimpan.');
     }
 
-    // --- Bulk Registration (Updated with Relay Mode) ---
+    // --- Bulk Registration (Updated with Relay Mode & Lane Assignment) ---
+    let currentLaneAssignments = {};
+
     window.openBulkRegModal = function(eventId) {
         if(!eventId) return;
         currentBulkEventId = eventId.toString();
@@ -903,6 +945,8 @@
         if(!ev) return;
 
         bulkSelectedAthletes = new Set((ev.participants || []).map(String));
+        currentLaneAssignments = ev.laneAssignment || {};
+
         // Use raw category from Excel
         document.getElementById('modal-event-title').innerText = `${ev.code ? ev.code + ' - ' : ''}${ev.name} • ${ev.category}`;
         
@@ -920,6 +964,13 @@
 
         // Reset Gender Filter to Default
         document.getElementById('modal-filter-gender').value = "";
+
+        // Reset UI State
+        document.getElementById('reg-selection-view').classList.remove('hidden');
+        document.getElementById('reg-lane-view').classList.add('hidden');
+        document.getElementById('btn-reg-back').classList.add('hidden');
+        document.getElementById('btn-reg-save').innerText = '💾 Simpan';
+        document.getElementById('btn-reg-save').setAttribute('onclick', 'handleRegAction()');
 
         // Relay Detection
         const isRelay = ev.name.toLowerCase().includes('4x');
@@ -1011,7 +1062,69 @@
         document.getElementById('modal-selected-count').innerText = `${bulkSelectedAthletes.size} peserta dipilih`;
     }
 
-    window.saveBulkRegistration = function() {
+    window.handleRegAction = function() {
+        const ev = appData.events.find(e => e.id.toString() === currentBulkEventId);
+        if(!ev) return;
+
+        // Check if event type is 'track' to show lane assignment
+        // Also fallback to name check if type is missing/unknown
+        const isTrack = (ev.type === 'track') || (!ev.type && !ev.name.toLowerCase().includes('lompat') && !ev.name.toLowerCase().includes('lontar') && !ev.name.toLowerCase().includes('rejam'));
+
+        if (isTrack && bulkSelectedAthletes.size > 0 && document.getElementById('reg-lane-view').classList.contains('hidden')) {
+            showLaneAssignmentUI();
+        } else {
+            saveFinalRegistration();
+        }
+    }
+
+    window.showLaneAssignmentUI = function() {
+        document.getElementById('reg-selection-view').classList.add('hidden');
+        document.getElementById('reg-lane-view').classList.remove('hidden');
+        document.getElementById('btn-reg-back').classList.remove('hidden');
+        document.getElementById('btn-reg-save').innerText = '💾 Simpan & Selesai';
+        
+        const container = document.getElementById('lane-assign-list');
+        const selectedIds = Array.from(bulkSelectedAthletes);
+        
+        // Find athletes objects
+        const athletes = selectedIds.map(id => appData.athletes.find(a => a.id.toString() === id.toString())).filter(a => a);
+        
+        // Special case for team mode in relay (if logic was fully implemented for saving teams, but here simplified)
+        // Note: Logic for teams is slightly different, assume individual for basic flow or handle similarly
+        
+        container.innerHTML = athletes.map(a => {
+            const assignedLane = currentLaneAssignments[a.id] || '';
+            return `
+            <div class="flex items-center justify-between bg-slate-800 p-3 rounded-lg border border-slate-600">
+                <div>
+                    <div class="font-bold text-white">${a.name}</div>
+                    <div class="text-xs text-slate-400">${a.class} • ${getDisplayHouseName(a.house)}</div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400">Lorong:</span>
+                    <select onchange="updateLane('${a.id}', this.value)" class="bg-slate-700 text-white text-sm rounded px-2 py-1 border border-slate-500 focus:border-blue-500 outline-none w-16 text-center">
+                        <option value="">-</option>
+                        ${[1,2,3,4,5,6,7,8].map(n => `<option value="${n}" ${assignedLane == n ? 'selected' : ''}>${n}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+            `;
+        }).join('');
+    }
+
+    window.updateLane = function(athleteId, lane) {
+        if(lane) currentLaneAssignments[athleteId] = lane;
+        else delete currentLaneAssignments[athleteId];
+    }
+
+    window.backToSelection = function() {
+        document.getElementById('reg-selection-view').classList.remove('hidden');
+        document.getElementById('reg-lane-view').classList.add('hidden');
+        document.getElementById('btn-reg-back').classList.add('hidden');
+        document.getElementById('btn-reg-save').innerText = '💾 Simpan';
+    }
+
+    window.saveFinalRegistration = function() {
         const ev = appData.events.find(e => e.id.toString() === currentBulkEventId);
         if(!ev) return;
 
@@ -1034,8 +1147,12 @@
                  }
              });
         }
+
+        // Save Lane Assignments
+        ev.laneAssignment = currentLaneAssignments;
+
         saveData();
-        showToast(`Pendaftaran untuk ${ev.name} berjaya disimpan!`);
+        showToast(`Pendaftaran & Tetapan Lorong untuk ${ev.name} berjaya disimpan!`);
         closeRegModal();
     }
     
@@ -1722,7 +1839,10 @@
                 participants = ev.participants.map(pid => appData.athletes.find(a => a.id.toString() === pid.toString())).filter(x => x);
             }
             
-            // Sort participants
+            // Map Lane Assignments
+            const laneMap = ev.laneAssignment || {};
+            
+            // UPDATE: Sort participants by Class -> Name (Ignore Lane Sorting)
             participants.sort((a,b) => (a.class || '').localeCompare(b.class || '') || a.name.localeCompare(b.name));
 
             const page = document.createElement('div');
@@ -1745,7 +1865,9 @@
             // --- TABLE CONTENT (TRACK FORMAT - LANE) ---
             const rows = participants.length === 0 ? `<tr><td colspan="7" class="text-center py-12 italic text-gray-400">Tiada pendaftaran peserta.</td></tr>` 
             : participants.map((p, i) => {
-                const lorong = (i % 8) + 1; // Auto Lane 1-8
+                // Get assigned lane or empty
+                const lorong = laneMap[p.id] || '-'; 
+                
                 return `
                 <tr class="border-b border-gray-300 h-10 text-xs">
                     <td class="p-2 text-center border-r border-gray-300">${i + 1}</td>
@@ -1793,53 +1915,6 @@
         });
 
         document.getElementById('pdf-preview-modal').classList.remove('hidden');
-    }
-
-    window.closePdfPreview = function() {
-        document.getElementById('pdf-preview-modal').classList.add('hidden');
-    }
-
-    window.downloadPDF = function() {
-        const element = document.getElementById('pdf-preview-content');
-        const opt = { 
-            margin: 0, 
-            filename: currentPdfFilename, 
-            image: { type: 'jpeg', quality: 0.98 }, 
-            html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, 
-            jsPDF: { unit: 'mm', format: 'a4', orientation: currentPdfOrientation || 'portrait' },
-            pagebreak: { mode: ['css', 'legacy'] }
-        };
-        
-        showToast("Menjana PDF... Sila tunggu.");
-        html2pdf().set(opt).from(element).save().then(() => {
-             showToast("PDF berjaya dimuat turun!");
-             closePdfPreview();
-        });
-    }
-
-    window.resetSystem = async function() {
-        if(confirm("Anda pasti? Fungsi ini akan memadam semua data yang dimuat naik. Anda boleh memuatnaik data baharu selepas ini")) {
-            try {
-                // 1. Clear Local Storage entirely
-                localStorage.clear();
-                
-                // 2. Reset appData in memory
-                appData = JSON.parse(JSON.stringify(defaultData));
-
-                // 3. Reset Cloud if connected
-                if (isFirebaseReady && auth.currentUser) {
-                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'sukan_main_data', 'app_data');
-                     await setDoc(docRef, defaultData); 
-                }
-                
-                showToast("Sistem berjaya di-reset. Refreshing...", "success");
-                setTimeout(() => location.reload(), 1000);
-            } catch (error) {
-                console.error("Reset failed", error);
-                // Fallback: Force reload which will clear memory if local storage is gone
-                location.reload();
-            }
-        }
     }
 
     // --- NEW FUNCTIONS FOR DELETE/OVERWRITE (RESTORED) ---
